@@ -1,0 +1,99 @@
+{
+  "_doc": "Casos compartidos entre scripts/common/schema.py y functions/_lib/schema.js. Cada tarea se arma aplicando 'patch' sobre 'baseTask' (un valor \"__delete__\" elimina el campo; 'task' reemplaza la tarea completa). Se comparan los campos con error, ordenados.",
+  "source": "planner",
+  "baseTask": {
+    "uid": "planner:T1",
+    "source": "planner",
+    "sourceId": "T1",
+    "title": "Tarea",
+    "assignees": [{"key": "ana@example.com", "name": "Ana", "email": "ana@example.com"}],
+    "labels": ["x"],
+    "status": "in_progress",
+    "priority": "urgent",
+    "createdAt": "2026-09-01T08:30:00-05:00",
+    "closedAt": null,
+    "extra": {}
+  },
+  "sourceNames": {
+    "valid": ["planner", "auditorias", "fuente_2", "a-b", "x1"],
+    "invalid": ["", "Planner", "-x", "con espacio", "a/b", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]
+  },
+  "taskCases": [
+    {"name": "valid", "patch": {}, "fields": []},
+    {"name": "custom_status", "patch": {"status": "Bloqueada"}, "fields": []},
+    {"name": "null_priority", "patch": {"priority": null}, "fields": []},
+    {"name": "utc_date", "patch": {"closedAt": "2026-09-10T17:45:00Z"}, "fields": []},
+    {"name": "no_assignees", "patch": {"assignees": []}, "fields": []},
+    {"name": "name_key_person", "patch": {"assignees": [{"key": "ana perez", "name": "Ana Pérez", "email": null}]}, "fields": []},
+    {"name": "not_object", "task": "hola", "fields": ["task"]},
+    {"name": "missing_title", "patch": {"title": "__delete__"}, "fields": ["title"]},
+    {"name": "uid_mismatch", "patch": {"uid": "planner:T2"}, "fields": ["uid"]},
+    {"name": "wrong_source", "patch": {"source": "otra"}, "fields": ["source"]},
+    {"name": "empty_source_id", "patch": {"sourceId": ""}, "fields": ["sourceId"]},
+    {"name": "assignees_not_list", "patch": {"assignees": "x"}, "fields": ["assignees"]},
+    {"name": "assignee_not_object", "patch": {"assignees": [5]}, "fields": ["assignees[0]"]},
+    {"name": "assignee_empty_key", "patch": {"assignees": [{"key": "", "name": "Ana", "email": null}]}, "fields": ["assignees[0].key"]},
+    {"name": "assignee_key_not_email", "patch": {"assignees": [{"key": "ana", "name": "Ana", "email": "ana@example.com"}]}, "fields": ["assignees[0].key"]},
+    {"name": "assignee_bad_email", "patch": {"assignees": [{"key": "ana", "name": "Ana", "email": "ana"}]}, "fields": ["assignees[0].email"]},
+    {"name": "assignee_bad_name", "patch": {"assignees": [{"key": "ana@example.com", "name": 3, "email": "ana@example.com"}]}, "fields": ["assignees[0].name"]},
+    {"name": "labels_not_list", "patch": {"labels": "x"}, "fields": ["labels"]},
+    {"name": "label_not_text", "patch": {"labels": ["a", 1]}, "fields": ["labels[1]"]},
+    {"name": "empty_status", "patch": {"status": ""}, "fields": ["status"]},
+    {"name": "bad_priority", "patch": {"priority": "alta"}, "fields": ["priority"]},
+    {"name": "date_without_zone", "patch": {"createdAt": "2026-09-01T08:30:00"}, "fields": ["createdAt"]},
+    {"name": "date_original_format", "patch": {"createdAt": "2026-09-01 08:30"}, "fields": ["createdAt"]},
+    {"name": "extra_null", "patch": {"extra": null}, "fields": ["extra"]},
+    {"name": "extra_list", "patch": {"extra": []}, "fields": ["extra"]},
+    {"name": "several_errors", "patch": {"title": 5, "priority": "x"}, "fields": ["priority", "title"]}
+  ],
+  "batches": {
+    "valid": ["abcd1234", "0123456789abcdef"],
+    "invalid": ["", "short", "ABCD1234", "abcd-1234", "abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd12345"]
+  },
+  "commitCases": [
+    {"name": "ok", "body": {"batch": "abcd1234", "parts": [{"index": 0, "length": 20, "received": 3, "invalidIndexes": []}]}, "expect": {"error": false, "rejected": false, "received": 3, "invalidCount": 0}},
+    {"name": "ok_full", "body": {"batch": "abcd1234", "parts": [{"index": 0, "length": 20, "received": 10, "invalidIndexes": [4]}, {"index": 1, "length": 9, "received": 0, "invalidIndexes": []}], "generatedAt": "x", "warnings": [{"code": "w"}], "sourceData": {"a": 1}, "assignment": {"owners": {"F1": {"owner": "a@x.com", "since": "t"}}, "summary": {}}}, "expect": {"error": false, "rejected": false, "received": 10, "invalidCount": 1}},
+    {"name": "over_threshold", "maxInvalidRatio": 0.1, "body": {"batch": "abcd1234", "parts": [{"index": 0, "length": 20, "received": 5, "invalidIndexes": [0]}]}, "expect": {"error": false, "rejected": true, "received": 5, "invalidCount": 1}},
+    {"name": "not_object", "body": [], "expect": {"error": true}},
+    {"name": "bad_batch", "body": {"batch": "x", "parts": [{"index": 0, "length": 20, "received": 0, "invalidIndexes": []}]}, "expect": {"error": true}},
+    {"name": "no_parts", "body": {"batch": "abcd1234", "parts": []}, "expect": {"error": true}},
+    {"name": "index_out_of_order", "body": {"batch": "abcd1234", "parts": [{"index": 1, "length": 20, "received": 0, "invalidIndexes": []}]}, "expect": {"error": true}},
+    {"name": "bad_length", "body": {"batch": "abcd1234", "parts": [{"index": 0, "length": "20", "received": 0, "invalidIndexes": []}]}, "expect": {"error": true}},
+    {"name": "invalid_index_out_of_range", "body": {"batch": "abcd1234", "parts": [{"index": 0, "length": 20, "received": 2, "invalidIndexes": [2]}]}, "expect": {"error": true}},
+    {"name": "bad_warnings", "body": {"batch": "abcd1234", "parts": [{"index": 0, "length": 20, "received": 0, "invalidIndexes": []}], "warnings": "x"}, "expect": {"error": true}},
+    {"name": "bad_source_data", "body": {"batch": "abcd1234", "parts": [{"index": 0, "length": 20, "received": 0, "invalidIndexes": []}], "sourceData": []}, "expect": {"error": true}},
+    {"name": "bad_assignment", "body": {"batch": "abcd1234", "parts": [{"index": 0, "length": 20, "received": 0, "invalidIndexes": []}], "assignment": {"owners": []}}, "expect": {"error": true}},
+    {"name": "bad_owner", "body": {"batch": "abcd1234", "parts": [{"index": 0, "length": 20, "received": 0, "invalidIndexes": []}], "assignment": {"owners": {"F1": {"owner": "nadie", "since": "t"}}, "summary": {}}}, "expect": {"error": true}}
+  ],
+  "payloadCases": [
+    {"name": "body_not_object", "body": [], "expect": {"error": true}},
+    {"name": "tasks_missing", "body": {}, "expect": {"error": true}},
+    {"name": "warnings_not_list", "body": {"tasks": [], "warnings": "x"}, "expect": {"error": true}},
+    {"name": "warning_not_object", "body": {"tasks": [], "warnings": ["x"]}, "expect": {"error": true}},
+    {"name": "generated_at_not_text", "body": {"tasks": [], "generatedAt": 5}, "expect": {"error": true}},
+    {"name": "empty_tasks_ok", "body": {"tasks": [], "warnings": null}, "expect": {"error": false, "rejected": false, "valid": 0, "invalid": 0}},
+    {"name": "source_data_not_object", "body": {"tasks": [], "sourceData": [1]}, "expect": {"error": true}},
+    {"name": "source_data_ok", "body": {"tasks": [], "sourceData": {"x": 1}}, "expect": {"error": false, "rejected": false, "valid": 0, "invalid": 0}},
+    {
+      "name": "under_threshold",
+      "maxInvalidRatio": 0.25,
+      "body": {"tasks": [{"sourceId": "T1", "uid": "planner:T1"}, {"sourceId": "T2", "uid": "planner:T2"}, {"sourceId": "T3", "uid": "planner:T3"}, {"sourceId": "T4", "uid": "planner:T4", "status": ""}]},
+      "tasksArePatches": true,
+      "expect": {"error": false, "rejected": false, "valid": 3, "invalid": 1}
+    },
+    {
+      "name": "over_threshold",
+      "maxInvalidRatio": 0.2,
+      "body": {"tasks": [{"sourceId": "T1", "uid": "planner:T1"}, {"sourceId": "T2", "uid": "planner:T2"}, {"sourceId": "T3", "uid": "planner:T3"}, {"sourceId": "T4", "uid": "planner:T4", "status": ""}]},
+      "tasksArePatches": true,
+      "expect": {"error": false, "rejected": true, "valid": 3, "invalid": 1}
+    },
+    {
+      "name": "duplicate_uid",
+      "maxInvalidRatio": 0.5,
+      "body": {"tasks": [{}, {}]},
+      "tasksArePatches": true,
+      "expect": {"error": false, "rejected": false, "valid": 1, "invalid": 1, "invalidFields": [["uid"]]}
+    }
+  ]
+}

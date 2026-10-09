@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pruebas de Functions</title>
+  <style>
+    :root { --bg: #fff; --fg: #1d1d1f; --ok: #1a7f37; --fail: #b00020; --muted: #6b6b70; color-scheme: light dark; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #141416; --fg: #ececef; --ok: #56d364; --fail: #ff8a80; --muted: #9a9aa1; } }
+    body { margin: 0; padding: 24px 16px; background: var(--bg); color: var(--fg); font: 14px/1.5 system-ui, sans-serif; }
+    h1 { font-size: 1.3rem; margin: 0 0 4px; }
+    #summary { font-weight: 600; }
+    .ok { color: var(--ok); } .fail { color: var(--fail); } .muted { color: var(--muted); }
+    li { margin: 2px 0; } pre.err { white-space: pre-wrap; margin: 2px 0 8px 16px; color: var(--fail); }
+    #results { display: none; }
+  </style>
+  <script>
+    // Si un módulo no carga (ruta o sintaxis), se reporta la falla en vez de quedar colgado.
+    function reportLoadError(message) {
+      var results = { total: 1, passed: 0, failures: [{ name: "carga de módulos", error: message }] };
+      document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("summary").textContent = "Error al cargar: " + message;
+        document.getElementById("summary").className = "fail";
+      });
+      fetch("/__tests__/results", { method: "POST", body: JSON.stringify(results) });
+    }
+    window.addEventListener("error", function (e) {
+      var target = e.target && e.target.src ? " (" + e.target.src + ")" : "";
+      reportLoadError((e.message || "no se pudo cargar un script") + target);
+    }, true);
+  </script>
+  <script type="module" src="run.js"></script>
+</head>
+<body>
+  <h1>Pruebas de las Functions (JS)</h1>
+  <p class="muted">Casos compartidos con Python (fixtures/) y endpoints con un KV en memoria. Solo existe en dev_server.py.</p>
+  <p id="summary">Ejecutando…</p>
+  <ol id="list"></ol>
+  <pre id="results"></pre>
+</body>
+</html>

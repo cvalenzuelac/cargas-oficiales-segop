@@ -1,0 +1,344 @@
+{
+  "_doc": "Casos compartidos entre scripts/common/merge.py y functions/_lib/merge.js. Cada caso: snapshots de entrada y, como esperado, el resumen de fuentes, las personas, el orden de tareas, los responsables canónicos por uid y los warnings.",
+  "normalizeName": [
+    ["  José   NÚÑEZ ", "jose nunez"],
+    ["María\tLópez", "maria lopez"],
+    ["Ñandú Ü", "nandu u"],
+    ["ANA  PEREZ", "ana perez"],
+    ["Carlos Ruíz", "carlos ruiz"],
+    ["", ""]
+  ],
+  "cases": [
+    {
+      "name": "single_source",
+      "snapshots": [
+        {
+          "source": "planner",
+          "updatedAt": "2026-10-01T10:00:00Z",
+          "warnings": [{"source": "planner", "sourceId": "T2", "code": "unknown_status", "message": "m"}],
+          "tasks": [
+            {"uid": "planner:T1", "sourceId": "T1", "title": "A", "assignees": [
+              {"key": "ana.perez@example.com", "name": "Ana Pérez", "email": "ana.perez@example.com"},
+              {"key": "luis.gomez@example.com", "name": "Luis Gómez", "email": "luis.gomez@example.com"}
+            ]},
+            {"uid": "planner:T2", "sourceId": "T2", "title": "B", "assignees": [
+              {"key": "ana.perez@example.com", "name": "Ana Pérez", "email": "ana.perez@example.com"}
+            ]}
+          ]
+        }
+      ],
+      "expected": {
+        "sources": {"planner": {"updatedAt": "2026-10-01T10:00:00Z", "count": 2}},
+        "people": [
+          {"key": "ana.perez@example.com", "name": "Ana Pérez", "email": "ana.perez@example.com", "sources": ["planner"], "taskCount": 2},
+          {"key": "luis.gomez@example.com", "name": "Luis Gómez", "email": "luis.gomez@example.com", "sources": ["planner"], "taskCount": 1}
+        ],
+        "taskOrder": ["planner:T1", "planner:T2"],
+        "assignees": {
+          "planner:T1": [
+            {"key": "ana.perez@example.com", "name": "Ana Pérez", "email": "ana.perez@example.com"},
+            {"key": "luis.gomez@example.com", "name": "Luis Gómez", "email": "luis.gomez@example.com"}
+          ],
+          "planner:T2": [
+            {"key": "ana.perez@example.com", "name": "Ana Pérez", "email": "ana.perez@example.com"}
+          ]
+        },
+        "warnings": [{"source": "planner", "sourceId": "T2", "code": "unknown_status", "message": "m"}]
+      }
+    },
+    {
+      "name": "unify_by_name_across_sources",
+      "snapshots": [
+        {
+          "source": "auditorias",
+          "updatedAt": "2026-10-02T10:00:00Z",
+          "warnings": [],
+          "tasks": [
+            {"uid": "auditorias:A1", "sourceId": "A1", "title": "X", "assignees": [
+              {"key": "ana perez", "name": "ANA  PEREZ", "email": null},
+              {"key": "pedro diaz", "name": "Pedro Díaz", "email": null}
+            ]}
+          ]
+        },
+        {
+          "source": "planner",
+          "updatedAt": "2026-10-01T10:00:00Z",
+          "warnings": [],
+          "tasks": [
+            {"uid": "planner:T1", "sourceId": "T1", "title": "A", "assignees": [
+              {"key": "ana.perez@example.com", "name": "Ana Pérez", "email": "ana.perez@example.com"}
+            ]}
+          ]
+        }
+      ],
+      "expected": {
+        "sources": {
+          "planner": {"updatedAt": "2026-10-01T10:00:00Z", "count": 1},
+          "auditorias": {"updatedAt": "2026-10-02T10:00:00Z", "count": 1}
+        },
+        "people": [
+          {"key": "ana.perez@example.com", "name": "Ana Pérez", "email": "ana.perez@example.com", "sources": ["auditorias", "planner"], "taskCount": 2},
+          {"key": "pedro diaz", "name": "Pedro Díaz", "email": null, "sources": ["auditorias"], "taskCount": 1}
+        ],
+        "taskOrder": ["planner:T1", "auditorias:A1"],
+        "assignees": {
+          "planner:T1": [
+            {"key": "ana.perez@example.com", "name": "Ana Pérez", "email": "ana.perez@example.com"}
+          ],
+          "auditorias:A1": [
+            {"key": "ana.perez@example.com", "name": "Ana Pérez", "email": "ana.perez@example.com"},
+            {"key": "pedro diaz", "name": "Pedro Díaz", "email": null}
+          ]
+        },
+        "warnings": []
+      }
+    },
+    {
+      "name": "ambiguous_name_is_not_unified",
+      "snapshots": [
+        {
+          "source": "planner",
+          "updatedAt": "2026-10-01T10:00:00Z",
+          "warnings": [],
+          "tasks": [
+            {"uid": "planner:T1", "sourceId": "T1", "title": "A", "assignees": [
+              {"key": "c1@example.com", "name": "Carlos Ruiz", "email": "c1@example.com"}
+            ]},
+            {"uid": "planner:T2", "sourceId": "T2", "title": "B", "assignees": [
+              {"key": "c2@example.com", "name": "Carlos Ruíz", "email": "c2@example.com"}
+            ]}
+          ]
+        },
+        {
+          "source": "auditorias",
+          "updatedAt": "2026-10-02T10:00:00Z",
+          "warnings": [],
+          "tasks": [
+            {"uid": "auditorias:A1", "sourceId": "A1", "title": "X", "assignees": [
+              {"key": "carlos ruiz", "name": "Carlos Ruiz", "email": null}
+            ]}
+          ]
+        }
+      ],
+      "expected": {
+        "sources": {
+          "planner": {"updatedAt": "2026-10-01T10:00:00Z", "count": 2},
+          "auditorias": {"updatedAt": "2026-10-02T10:00:00Z", "count": 1}
+        },
+        "people": [
+          {"key": "c1@example.com", "name": "Carlos Ruiz", "email": "c1@example.com", "sources": ["planner"], "taskCount": 1},
+          {"key": "c2@example.com", "name": "Carlos Ruíz", "email": "c2@example.com", "sources": ["planner"], "taskCount": 1},
+          {"key": "carlos ruiz", "name": "Carlos Ruiz", "email": null, "sources": ["auditorias"], "taskCount": 1}
+        ],
+        "taskOrder": ["planner:T1", "planner:T2", "auditorias:A1"],
+        "assignees": {
+          "planner:T1": [{"key": "c1@example.com", "name": "Carlos Ruiz", "email": "c1@example.com"}],
+          "planner:T2": [{"key": "c2@example.com", "name": "Carlos Ruíz", "email": "c2@example.com"}],
+          "auditorias:A1": [{"key": "carlos ruiz", "name": "Carlos Ruiz", "email": null}]
+        },
+        "warnings": [
+          {
+            "source": null,
+            "sourceId": null,
+            "code": "ambiguous_person",
+            "message": "\"carlos ruiz\" coincide con varias personas con correo (c1@example.com, c2@example.com); no se unifica",
+            "name": "carlos ruiz",
+            "candidates": ["c1@example.com", "c2@example.com"]
+          }
+        ]
+      }
+    },
+    {
+      "name": "planner_name_wins",
+      "snapshots": [
+        {
+          "source": "auditorias",
+          "updatedAt": "2026-10-02T10:00:00Z",
+          "warnings": [],
+          "tasks": [
+            {"uid": "auditorias:A1", "sourceId": "A1", "title": "X", "assignees": [
+              {"key": "ana.perez@example.com", "name": "A. Perez", "email": "ana.perez@example.com"}
+            ]}
+          ]
+        },
+        {
+          "source": "planner",
+          "updatedAt": "2026-10-01T10:00:00Z",
+          "warnings": [],
+          "tasks": [
+            {"uid": "planner:T1", "sourceId": "T1", "title": "A", "assignees": [
+              {"key": "ana.perez@example.com", "name": "Ana Pérez", "email": "ana.perez@example.com"}
+            ]}
+          ]
+        }
+      ],
+      "expected": {
+        "sources": {
+          "planner": {"updatedAt": "2026-10-01T10:00:00Z", "count": 1},
+          "auditorias": {"updatedAt": "2026-10-02T10:00:00Z", "count": 1}
+        },
+        "people": [
+          {"key": "ana.perez@example.com", "name": "Ana Pérez", "email": "ana.perez@example.com", "sources": ["auditorias", "planner"], "taskCount": 2}
+        ],
+        "taskOrder": ["planner:T1", "auditorias:A1"],
+        "assignees": {
+          "planner:T1": [{"key": "ana.perez@example.com", "name": "Ana Pérez", "email": "ana.perez@example.com"}],
+          "auditorias:A1": [{"key": "ana.perez@example.com", "name": "Ana Pérez", "email": "ana.perez@example.com"}]
+        },
+        "warnings": []
+      }
+    },
+    {
+      "name": "without_planner_alphabetical_order_and_all_names_indexed",
+      "snapshots": [
+        {
+          "source": "zeta",
+          "updatedAt": "2026-10-03T10:00:00Z",
+          "warnings": [{"source": "zeta", "sourceId": "Z1", "code": "w", "message": "z"}],
+          "tasks": [
+            {"uid": "zeta:Z1", "sourceId": "Z1", "title": "X", "assignees": [
+              {"key": "ana.perez@example.com", "name": "Ana P.", "email": "ana.perez@example.com"}
+            ]},
+            {"uid": "zeta:Z2", "sourceId": "Z2", "title": "Y", "assignees": [
+              {"key": "ana p.", "name": "Ana P.", "email": null}
+            ]}
+          ]
+        },
+        {
+          "source": "beta",
+          "updatedAt": "2026-10-02T10:00:00Z",
+          "warnings": [{"source": "beta", "sourceId": "B1", "code": "w", "message": "b"}],
+          "tasks": [
+            {"uid": "beta:B1", "sourceId": "B1", "title": "Z", "assignees": [
+              {"key": "ana.perez@example.com", "name": "Ana Perez Gomez", "email": "ana.perez@example.com"},
+              {"key": "ana perez gomez", "name": "Ana Pérez Gómez", "email": null}
+            ]}
+          ]
+        }
+      ],
+      "expected": {
+        "sources": {
+          "beta": {"updatedAt": "2026-10-02T10:00:00Z", "count": 1},
+          "zeta": {"updatedAt": "2026-10-03T10:00:00Z", "count": 2}
+        },
+        "people": [
+          {"key": "ana.perez@example.com", "name": "Ana Perez Gomez", "email": "ana.perez@example.com", "sources": ["beta", "zeta"], "taskCount": 3}
+        ],
+        "taskOrder": ["beta:B1", "zeta:Z1", "zeta:Z2"],
+        "assignees": {
+          "beta:B1": [{"key": "ana.perez@example.com", "name": "Ana Perez Gomez", "email": "ana.perez@example.com"}],
+          "zeta:Z1": [{"key": "ana.perez@example.com", "name": "Ana Perez Gomez", "email": "ana.perez@example.com"}],
+          "zeta:Z2": [{"key": "ana.perez@example.com", "name": "Ana Perez Gomez", "email": "ana.perez@example.com"}]
+        },
+        "warnings": [
+          {"source": "beta", "sourceId": "B1", "code": "w", "message": "b"},
+          {"source": "zeta", "sourceId": "Z1", "code": "w", "message": "z"}
+        ]
+      }
+    },
+    {
+      "name": "people_without_email_merge_by_key",
+      "snapshots": [
+        {
+          "source": "planner",
+          "updatedAt": "2026-10-01T10:00:00Z",
+          "warnings": [],
+          "tasks": [
+            {"uid": "planner:T4", "sourceId": "T4", "title": "A", "assignees": [
+              {"key": "maria lopez", "name": "María López", "email": null}
+            ]}
+          ]
+        },
+        {
+          "source": "auditorias",
+          "updatedAt": "2026-10-02T10:00:00Z",
+          "warnings": [],
+          "tasks": [
+            {"uid": "auditorias:A1", "sourceId": "A1", "title": "X", "assignees": [
+              {"key": "maria lopez", "name": "MARIA LOPEZ", "email": null}
+            ]}
+          ]
+        }
+      ],
+      "expected": {
+        "sources": {
+          "planner": {"updatedAt": "2026-10-01T10:00:00Z", "count": 1},
+          "auditorias": {"updatedAt": "2026-10-02T10:00:00Z", "count": 1}
+        },
+        "people": [
+          {"key": "maria lopez", "name": "María López", "email": null, "sources": ["auditorias", "planner"], "taskCount": 2}
+        ],
+        "taskOrder": ["planner:T4", "auditorias:A1"],
+        "assignees": {
+          "planner:T4": [{"key": "maria lopez", "name": "María López", "email": null}],
+          "auditorias:A1": [{"key": "maria lopez", "name": "María López", "email": null}]
+        },
+        "warnings": []
+      }
+    },
+    {
+      "name": "planner_mismatch_rows_unified_within_planner",
+      "snapshots": [
+        {
+          "source": "planner",
+          "updatedAt": "2026-10-01T10:00:00Z",
+          "warnings": [],
+          "tasks": [
+            {"uid": "planner:T1", "sourceId": "T1", "title": "A", "assignees": [
+              {"key": "ana.perez@example.com", "name": "Ana Pérez", "email": "ana.perez@example.com"}
+            ]},
+            {"uid": "planner:T4", "sourceId": "T4", "title": "B", "assignees": [
+              {"key": "ana perez", "name": "Ana Pérez", "email": null},
+              {"key": "luis gomez", "name": "Luis Gómez", "email": null}
+            ]}
+          ]
+        }
+      ],
+      "expected": {
+        "sources": {"planner": {"updatedAt": "2026-10-01T10:00:00Z", "count": 2}},
+        "people": [
+          {"key": "ana.perez@example.com", "name": "Ana Pérez", "email": "ana.perez@example.com", "sources": ["planner"], "taskCount": 2},
+          {"key": "luis gomez", "name": "Luis Gómez", "email": null, "sources": ["planner"], "taskCount": 1}
+        ],
+        "taskOrder": ["planner:T1", "planner:T4"],
+        "assignees": {
+          "planner:T1": [{"key": "ana.perez@example.com", "name": "Ana Pérez", "email": "ana.perez@example.com"}],
+          "planner:T4": [
+            {"key": "ana.perez@example.com", "name": "Ana Pérez", "email": "ana.perez@example.com"},
+            {"key": "luis gomez", "name": "Luis Gómez", "email": null}
+          ]
+        },
+        "warnings": []
+      }
+    },
+    {
+      "name": "source_data_is_passed_through",
+      "snapshots": [
+        {"source": "sara", "updatedAt": "2026-10-02T10:00:00Z", "warnings": [], "tasks": [], "sourceData": {"assignment": {"counts": {"kept": 1}}}},
+        {"source": "planner", "updatedAt": "2026-10-01T10:00:00Z", "warnings": [], "tasks": []}
+      ],
+      "expected": {
+        "sources": {
+          "planner": {"updatedAt": "2026-10-01T10:00:00Z", "count": 0},
+          "sara": {"updatedAt": "2026-10-02T10:00:00Z", "count": 0}
+        },
+        "people": [],
+        "taskOrder": [],
+        "assignees": {},
+        "warnings": [],
+        "sourceData": {"sara": {"assignment": {"counts": {"kept": 1}}}}
+      }
+    },
+    {
+      "name": "no_sources",
+      "snapshots": [],
+      "expected": {
+        "sources": {},
+        "people": [],
+        "taskOrder": [],
+        "assignees": {},
+        "warnings": []
+      }
+    }
+  ]
+}

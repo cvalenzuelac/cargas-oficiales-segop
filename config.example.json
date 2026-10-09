@@ -1,0 +1,51 @@
+{
+  "stateDir": ".state",
+  "logDir": "logs",
+  "sources": {
+    "planner": {
+      "csvPath": "C:\\ruta\\al\\archivo\\asignaciones.csv",
+      "adapter": "planner",
+      "delimiter": ","
+    },
+    "sara": {
+      "type": "http",
+      "url": "https://avh.sara.cloud/api/_/charts/@eventsl12m/dataset/@EventsL12M",
+      "apiKeyEnv": "SARA_API_KEY",
+      "apiKeyParam": "erg-api-key",
+      "adapter": "sara",
+      "delimiter": ",",
+      "repairColumn": "eventname",
+      "options": {
+        "windowDays": 180,
+        "workWindowDays": 7,
+        "plannerSource": "planner",
+        "plannerWeights": {
+          "Logged for Statistics (UR 1-10)": 5,
+          "Assessment (UR 20-50)": 15,
+          "FULL INVESTIGATION (UR 500-2500))": 45
+        },
+        "team": [
+          "persona.uno@avianca.com",
+          "persona.dos@avianca.com",
+          "persona.tres@avianca.com",
+          "persona.cuatro@avianca.com"
+        ]
+      },
+      "assignment": {
+        "validators": [
+          { "email": "persona.uno@avianca.com", "active": true, "capacity": 1 },
+          { "email": "persona.dos@avianca.com", "active": true, "capacity": 0.5 },
+          { "email": "persona.tres@avianca.com", "active": false }
+        ],
+        "restrictions": {
+          "NOMBRE EXACTO DEL EVENTO": ["persona.uno@avianca.com"]
+        },
+        "registrationOwners": {
+          "N337QT": "persona.uno@avianca.com",
+          "N338QT": "persona.uno@avianca.com",
+          "N330QT": "persona.dos@avianca.com"
+        }
+      }
+    }
+  }
+}

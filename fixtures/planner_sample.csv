@@ -1,0 +1,10 @@
+﻿Id,Titulo,Responsables,Correos,Etiquetas,Estado,Prioridad,FechaCreacion,FechaCierre
+T1,"Revisar manual, capítulo 3",Ana Pérez; Luis Gómez,ana.perez@example.com; Luis.Gomez@Example.com,Auditoría; Seguimiento,En curso,Urgente,2026-09-01 08:30,
+T2,Informe mensual,José Núñez,jose.nunez@example.com,,Completada,Media,2026-09-02 14:00,2026-09-10 17:45
+T3,Sin responsables,,,,No iniciada,Baja,2026-09-03 09:00,
+T4,Responsables desalineados,Ana Pérez; Luis Gómez,ana.perez@example.com,,En curso,Importante,2026-09-04 10:15,
+T5,Correo vacío,"María   López; Ana Pérez", ; ana.perez@example.com,Auditoría; ; Auditoría,No iniciada,Media,2026-09-05 11:00,
+T6,Valores raros,Luis Gómez,luis.gomez@example.com,,Bloqueada,Crítica,2026/09/06 08:00,
+T7,Formato de Power Automate,"{""displayName"":""Ana Pérez""}; {""displayName"":""Luis Gómez""}",ana.perez@example.com; luis.gomez@example.com,,En curso,Media,2026-09-07 09:00,
+T2,Duplicada,José Núñez,jose.nunez@example.com,,Completada,Media,2026-09-02 14:00,
+,Sin id,José Núñez,jose.nunez@example.com,,Completada,Media,2026-09-02 14:00,

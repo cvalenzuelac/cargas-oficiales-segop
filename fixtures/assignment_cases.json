@@ -1,0 +1,255 @@
+{
+  "_doc": "Casos de scripts/common/assignment.py. Cada tarea se expande a {uid: 'sara:'+id, source: 'sara', sourceId: id, labels, assignees: [], extra: {openEvents: load, olderOpenEvents: older}}; load = eventos abiertos en la ventana de 180 días, older = abiertos más antiguos. 'validators' esperado: email -> [vuelos, eventos abiertos].",
+  "hash": [["", 2166136261], ["a", 3826002220], ["foobar", 3214735720], ["T1|a@x.com", 2784365130], ["T1|b@x.com", 3847449639]],
+  "configErrors": [
+    {"config": [], "message": "assignment debe ser un objeto"},
+    {"config": {"validators": "x"}, "message": "assignment.validators debe ser una lista"},
+    {"config": {"validators": [5]}, "message": "assignment.validators[0] debe ser un objeto"},
+    {"config": {"validators": [{"email": "nope"}]}, "message": "assignment.validators[0].email debe ser un correo"},
+    {"config": {"validators": [{"email": "a@x.com"}, {"email": " A@X.com "}]}, "message": "assignment.validators[1].email repetido: a@x.com"},
+    {"config": {"validators": [{"email": "a@x.com", "name": 3}]}, "message": "assignment.validators[0].name debe ser texto"},
+    {"config": {"validators": [{"email": "a@x.com", "active": null}]}, "message": "assignment.validators[0].active debe ser true o false"},
+    {"config": {"validators": [{"email": "a@x.com", "capacity": -1}]}, "message": "assignment.validators[0].capacity debe ser un número >= 0"},
+    {"config": {"validators": [{"email": "a@x.com", "capacity": "1"}]}, "message": "assignment.validators[0].capacity debe ser un número >= 0"},
+    {"config": {"validators": [], "restrictions": []}, "message": "assignment.restrictions debe ser un objeto"},
+    {"config": {"validators": [], "restrictions": {"E": "a@x.com"}}, "message": "assignment.restrictions[\"E\"] debe ser una lista de correos"},
+    {"config": {"validators": [], "registrationOwners": []}, "message": "assignment.registrationOwners debe ser un objeto"},
+    {"config": {"validators": [{"email": "a@x.com"}], "registrationOwners": {"N1": "b@x.com"}}, "message": "assignment.registrationOwners[\"N1\"] debe ser el correo de un validador de la lista"}
+  ],
+  "normalizeConfig": {
+    "input": {
+      "validators": [
+        {"email": " Ana@X.com ", "name": " Ana "},
+        {"email": "b@x.com", "active": false, "capacity": 0.5, "name": ""}
+      ],
+      "restrictions": {"E1": ["B@x.com", "b@x.com", "ana@x.com"]}
+    },
+    "expected": {
+      "validators": [
+        {"email": "ana@x.com", "name": "Ana", "active": true, "capacity": 1},
+        {"email": "b@x.com", "name": null, "active": false, "capacity": 0.5}
+      ],
+      "restrictions": {"E1": ["ana@x.com", "b@x.com"]},
+      "registrationOwners": {}
+    }
+  },
+  "cases": [
+    {
+      "name": "keeps_owner_and_balances_new_flights",
+      "now": "2026-10-08T13:00:00.000Z",
+      "config": {"validators": [{"email": "a@x.com", "name": "A"}, {"email": "b@x.com", "name": "B"}]},
+      "previous": {"X": {"owner": "a@x.com", "since": "2026-10-01T13:00:00.000Z"}},
+      "tasks": [
+        {"id": "X", "labels": ["E1"], "load": 3, "older": 0},
+        {"id": "N1", "labels": ["E1"], "load": 2, "older": 0},
+        {"id": "N2", "labels": ["E2"], "load": 1, "older": 4}
+      ],
+      "expected": {
+        "owners": {
+          "X": {"owner": "a@x.com", "since": "2026-10-01T13:00:00.000Z"},
+          "N1": {"owner": "b@x.com", "since": "2026-10-08T13:00:00.000Z"},
+          "N2": {"owner": "b@x.com", "since": "2026-10-08T13:00:00.000Z"}
+        },
+        "assignees": {"X": "a@x.com", "N1": "b@x.com", "N2": "b@x.com"},
+        "conflicts": [],
+        "backlog": {"flights": 0, "olderOpenEvents": 0},
+        "counts": {"kept": 1, "assigned": 2, "reassigned": 0, "released": 0},
+        "validators": {"a@x.com": [1, 3], "b@x.com": [2, 3]}
+      }
+    },
+    {
+      "name": "capacity_weights_the_load",
+      "now": "2026-10-08T13:00:00.000Z",
+      "config": {"validators": [{"email": "a@x.com"}, {"email": "b@x.com", "capacity": 0.5}]},
+      "previous": {},
+      "tasks": [
+        {"id": "F1", "labels": [], "load": 4, "older": 0},
+        {"id": "F2", "labels": [], "load": 2, "older": 0},
+        {"id": "F3", "labels": [], "load": 1, "older": 0}
+      ],
+      "expected": {
+        "owners": {
+          "F1": {"owner": "a@x.com", "since": "2026-10-08T13:00:00.000Z"},
+          "F2": {"owner": "b@x.com", "since": "2026-10-08T13:00:00.000Z"},
+          "F3": {"owner": "a@x.com", "since": "2026-10-08T13:00:00.000Z"}
+        },
+        "assignees": {"F1": "a@x.com", "F2": "b@x.com", "F3": "a@x.com"},
+        "conflicts": [],
+        "backlog": {"flights": 0, "olderOpenEvents": 0},
+        "counts": {"kept": 0, "assigned": 3, "reassigned": 0, "released": 0},
+        "validators": {"a@x.com": [2, 5], "b@x.com": [1, 2]}
+      }
+    },
+    {
+      "name": "inactive_owner_backlog_and_released",
+      "now": "2026-10-08T13:00:00.000Z",
+      "config": {"validators": [{"email": "a@x.com", "active": false}, {"email": "b@x.com"}, {"email": "c@x.com"}]},
+      "previous": {
+        "F1": {"owner": "a@x.com", "since": "2026-09-01T13:00:00.000Z"},
+        "F2": {"owner": "b@x.com", "since": "2026-09-02T13:00:00.000Z"},
+        "F4": {"owner": "b@x.com", "since": "2026-03-01T13:00:00.000Z"},
+        "F9": {"owner": "c@x.com", "since": "2026-09-03T13:00:00.000Z"}
+      },
+      "tasks": [
+        {"id": "F1", "labels": [], "load": 2, "older": 0},
+        {"id": "F2", "labels": [], "load": 1, "older": 0},
+        {"id": "F3", "labels": [], "load": 0, "older": 5},
+        {"id": "F4", "labels": [], "load": 0, "older": 1}
+      ],
+      "expected": {
+        "owners": {
+          "F1": {"owner": "c@x.com", "since": "2026-10-08T13:00:00.000Z"},
+          "F2": {"owner": "b@x.com", "since": "2026-09-02T13:00:00.000Z"}
+        },
+        "assignees": {"F1": "c@x.com", "F2": "b@x.com", "F3": null, "F4": null},
+        "conflicts": [],
+        "backlog": {"flights": 2, "olderOpenEvents": 6},
+        "counts": {"kept": 1, "assigned": 0, "reassigned": 1, "released": 2},
+        "validators": {"a@x.com": [0, 0], "b@x.com": [1, 1], "c@x.com": [1, 2]}
+      }
+    },
+    {
+      "name": "restrictions_and_conflicts",
+      "now": "2026-10-08T13:00:00.000Z",
+      "config": {
+        "validators": [{"email": "a@x.com"}, {"email": "b@x.com"}],
+        "restrictions": {"EV-R": ["B@x.com"], "EV-X": ["a@x.com"]}
+      },
+      "previous": {"F4": {"owner": "a@x.com", "since": "2026-09-01T13:00:00.000Z"}},
+      "tasks": [
+        {"id": "F1", "labels": ["EV-R"], "load": 2, "older": 0},
+        {"id": "F4", "labels": ["EV-R"], "load": 2, "older": 0},
+        {"id": "F2", "labels": ["EV-R", "EV-X"], "load": 1, "older": 0},
+        {"id": "F3", "labels": ["EV-Z"], "load": 1, "older": 0}
+      ],
+      "expected": {
+        "owners": {
+          "F1": {"owner": "b@x.com", "since": "2026-10-08T13:00:00.000Z"},
+          "F4": {"owner": "b@x.com", "since": "2026-10-08T13:00:00.000Z"},
+          "F3": {"owner": "a@x.com", "since": "2026-10-08T13:00:00.000Z"}
+        },
+        "assignees": {"F1": "b@x.com", "F4": "b@x.com", "F2": null, "F3": "a@x.com"},
+        "conflicts": ["F2"],
+        "backlog": {"flights": 0, "olderOpenEvents": 0},
+        "counts": {"kept": 0, "assigned": 2, "reassigned": 1, "released": 0},
+        "validators": {"a@x.com": [1, 1], "b@x.com": [2, 4]},
+        "restrictedTypes": {"a@x.com": ["EV-X"], "b@x.com": ["EV-R"]}
+      }
+    },
+    {
+      "name": "tie_broken_by_hash_then_load",
+      "now": "2026-10-08T13:00:00.000Z",
+      "config": {"validators": [{"email": "a@x.com"}, {"email": "b@x.com"}]},
+      "previous": {},
+      "tasks": [
+        {"id": "T2", "labels": [], "load": 1, "older": 0},
+        {"id": "T1", "labels": [], "load": 1, "older": 0},
+        {"id": "Z0", "labels": [], "load": 0, "older": 0}
+      ],
+      "expected": {
+        "owners": {
+          "T1": {"owner": "b@x.com", "since": "2026-10-08T13:00:00.000Z"},
+          "T2": {"owner": "a@x.com", "since": "2026-10-08T13:00:00.000Z"}
+        },
+        "assignees": {"T1": "b@x.com", "T2": "a@x.com", "Z0": null},
+        "conflicts": [],
+        "backlog": {"flights": 0, "olderOpenEvents": 0},
+        "counts": {"kept": 0, "assigned": 2, "reassigned": 0, "released": 0},
+        "validators": {"a@x.com": [1, 1], "b@x.com": [1, 1]}
+      }
+    },
+    {
+      "name": "dedicated_registration_counts_for_its_owner",
+      "now": "2026-10-08T13:00:00.000Z",
+      "config": {"validators": [{"email": "a@x.com"}, {"email": "b@x.com"}], "registrationOwners": {"n337qt": "B@x.com"}},
+      "previous": {"D2": {"owner": "a@x.com", "since": "2026-09-01T13:00:00.000Z"}},
+      "tasks": [
+        {"id": "D1", "labels": [], "load": 5, "older": 0, "registration": "N337QT"},
+        {"id": "D2", "labels": [], "load": 1, "older": 0, "registration": "N337QT"},
+        {"id": "F1", "labels": [], "load": 2, "older": 0, "registration": "HK5368"},
+        {"id": "F2", "labels": [], "load": 1, "older": 0, "registration": "HK5368"}
+      ],
+      "expected": {
+        "owners": {
+          "D1": {"owner": "b@x.com", "since": "2026-10-08T13:00:00.000Z"},
+          "D2": {"owner": "b@x.com", "since": "2026-10-08T13:00:00.000Z"},
+          "F1": {"owner": "a@x.com", "since": "2026-10-08T13:00:00.000Z"},
+          "F2": {"owner": "a@x.com", "since": "2026-10-08T13:00:00.000Z"}
+        },
+        "assignees": {"D1": "b@x.com", "D2": "b@x.com", "F1": "a@x.com", "F2": "a@x.com"},
+        "conflicts": [],
+        "backlog": {"flights": 0, "olderOpenEvents": 0},
+        "counts": {"kept": 0, "assigned": 3, "reassigned": 1, "released": 0},
+        "validators": {"a@x.com": [2, 3], "b@x.com": [2, 6]}
+      }
+    },
+    {
+      "name": "dedicated_owner_only_handles_its_registrations",
+      "now": "2026-10-08T13:00:00.000Z",
+      "config": {"validators": [{"email": "a@x.com"}, {"email": "b@x.com"}], "registrationOwners": {"N337QT": "b@x.com"}},
+      "previous": {"F1": {"owner": "b@x.com", "since": "2026-09-01T13:00:00.000Z"}},
+      "tasks": [
+        {"id": "D1", "labels": [], "load": 1, "older": 0, "registration": "N337QT"},
+        {"id": "F1", "labels": [], "load": 2, "older": 0, "registration": "HK5368"},
+        {"id": "F2", "labels": [], "load": 3, "older": 0, "registration": "HK5368"}
+      ],
+      "expected": {
+        "owners": {
+          "D1": {"owner": "b@x.com", "since": "2026-10-08T13:00:00.000Z"},
+          "F1": {"owner": "a@x.com", "since": "2026-10-08T13:00:00.000Z"},
+          "F2": {"owner": "a@x.com", "since": "2026-10-08T13:00:00.000Z"}
+        },
+        "assignees": {"D1": "b@x.com", "F1": "a@x.com", "F2": "a@x.com"},
+        "conflicts": [],
+        "backlog": {"flights": 0, "olderOpenEvents": 0},
+        "counts": {"kept": 0, "assigned": 2, "reassigned": 1, "released": 0},
+        "validators": {"a@x.com": [2, 5], "b@x.com": [1, 1]}
+      }
+    },
+    {
+      "name": "only_dedicated_owners_active_is_conflict",
+      "now": "2026-10-08T13:00:00.000Z",
+      "config": {"validators": [{"email": "a@x.com", "active": false}, {"email": "b@x.com"}], "registrationOwners": {"N337QT": "b@x.com"}},
+      "previous": {},
+      "tasks": [{"id": "F1", "labels": [], "load": 2, "older": 0, "registration": "HK5368"}],
+      "expected": {
+        "owners": {},
+        "assignees": {"F1": null},
+        "conflicts": ["F1"],
+        "backlog": {"flights": 0, "olderOpenEvents": 0},
+        "counts": {"kept": 0, "assigned": 0, "reassigned": 0, "released": 0},
+        "validators": {"a@x.com": [0, 0], "b@x.com": [0, 0]}
+      }
+    },
+    {
+      "name": "dedicated_owner_inactive_is_conflict",
+      "now": "2026-10-08T13:00:00.000Z",
+      "config": {"validators": [{"email": "a@x.com"}, {"email": "b@x.com", "active": false}], "registrationOwners": {"N337QT": "b@x.com"}},
+      "previous": {},
+      "tasks": [{"id": "D1", "labels": [], "load": 5, "older": 0, "registration": "N337QT"}],
+      "expected": {
+        "owners": {},
+        "assignees": {"D1": null},
+        "conflicts": ["D1"],
+        "backlog": {"flights": 0, "olderOpenEvents": 0},
+        "counts": {"kept": 0, "assigned": 0, "reassigned": 0, "released": 0},
+        "validators": {"a@x.com": [0, 0], "b@x.com": [0, 0]}
+      }
+    },
+    {
+      "name": "no_active_validators",
+      "now": "2026-10-08T13:00:00.000Z",
+      "config": {"validators": [{"email": "a@x.com", "capacity": 0}]},
+      "previous": {},
+      "tasks": [{"id": "F1", "labels": [], "load": 1, "older": 0}],
+      "expected": {
+        "owners": {},
+        "assignees": {"F1": null},
+        "conflicts": ["F1"],
+        "backlog": {"flights": 0, "olderOpenEvents": 0},
+        "counts": {"kept": 0, "assigned": 0, "reassigned": 0, "released": 0},
+        "validators": {"a@x.com": [0, 0]}
+      }
+    }
+  ]
+}

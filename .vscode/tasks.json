@@ -1,0 +1,32 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      // Se inicia sola al abrir la carpeta (VS Code pide permiso la primera vez:
+      // "Allow Automatic Tasks"). También: Terminal > Run Task > dev_server.
+      "label": "dev_server",
+      "type": "process",
+      "command": "python",
+      "args": ["scripts/dev_server.py"],
+      "isBackground": true,
+      "problemMatcher": [],
+      "runOptions": { "runOn": "folderOpen" },
+      "presentation": { "reveal": "silent", "panel": "dedicated" }
+    },
+    {
+      "label": "push planner (local)",
+      "type": "process",
+      "command": "python",
+      "args": ["scripts/push_source.py", "planner", "--force"],
+      "problemMatcher": []
+    },
+    {
+      "label": "tests",
+      "type": "process",
+      "command": "python",
+      "args": ["-m", "unittest", "discover", "-s", "tests"],
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    }
+  ]
+}

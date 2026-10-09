@@ -1,0 +1,17 @@
+{
+  // Live Server ("Go Live") sirve public/ como raíz, igual que Cloudflare Pages,
+  // y reenvía /api/* a scripts/dev_server.py (puerto 8787), que emula las Functions.
+  "liveServer.settings.root": "/public",
+  "liveServer.settings.proxy": {
+    "enable": true,
+    "baseUri": "/api",
+    "proxyUri": "http://127.0.0.1:8787/api"
+  },
+  "liveServer.settings.ignoreFiles": [
+    ".vscode/**",
+    ".local-data/**",
+    ".state/**",
+    "logs/**",
+    "**/__pycache__/**"
+  ]
+}

@@ -1,0 +1,470 @@
+<div id="app">
+  <div id="app-header">
+    <div class="header-icon">◆</div>
+    <div class="header-text">
+      <div class="app-title">Salud de validación — Eventos severidad alta</div>
+      <div class="app-sub" id="app-sub">Resumen general</div>
+    </div>
+  </div>
+
+  <div id="tabs">
+    <button class="tab-btn active" data-tab="overview" type="button">Overview</button>
+    <button class="tab-btn" data-tab="health" type="button">Salud por tipo de evento</button>
+    <button class="tab-btn" data-tab="patterns" type="button">Patrones por evento</button>
+    <button class="tab-btn" data-tab="validators" type="button">Validadores</button>
+    <button class="tab-btn" data-tab="assistant" type="button">Asistente de validación</button>
+    <button class="tab-btn" data-tab="assign" type="button">Asignación</button>
+  </div>
+
+  <!-- ========== TAB: OVERVIEW ========== -->
+  <div class="tab-panel active" id="tab-overview">
+    <div id="kpi-grid">
+      <div class="metric">
+        <div class="metric-label">Total eventos</div>
+        <div class="metric-value" id="kpi-total">–</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Válidos</div>
+        <div class="metric-value metric-success" id="kpi-valid">–</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Inválidos</div>
+        <div class="metric-value metric-danger" id="kpi-invalid">–</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Abiertos</div>
+        <div class="metric-value metric-warning" id="kpi-open">–</div>
+      </div>
+      <div class="metric metric-highlight">
+        <div class="metric-label">Ratio de inválidos</div>
+        <div class="metric-value metric-accent" id="kpi-ratio">–</div>
+        <div class="metric-foot" id="kpi-ratio-foot">–</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Proporción de inválidos en el tiempo</div>
+        <div class="panel-hint">Por mes, sobre eventos ya validados</div>
+      </div>
+      <div id="trend-scroll">
+        <canvas id="trend-chart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB: SALUD POR EVENTO ========== -->
+  <div class="tab-panel" id="tab-health">
+    <div id="health-kpi-grid">
+      <div class="metric">
+        <div class="metric-label">Eventos analizados</div>
+        <div class="metric-value" id="health-kpi-total">–</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Válidos</div>
+        <div class="metric-value metric-success" id="health-kpi-valid">–</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Inválidos</div>
+        <div class="metric-value metric-danger" id="health-kpi-invalid">–</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Salud por tipo de evento</div>
+        <div class="panel-hint">Ordenado por límite inferior del intervalo de Wilson</div>
+      </div>
+      <div id="health-toolbar">
+        <span id="health-count-label"></span>
+        <button id="health-toggle" type="button">Ver todos los eventos</button>
+      </div>
+      <div id="health-scroll">
+        <canvas id="health-chart"></canvas>
+      </div>
+      <div id="health-legend">
+        <span class="hl-item"><span class="hl-dot hl-dot-red"></span>Problema confirmado (intervalo completo por encima de la base)</span>
+        <span class="hl-item"><span class="hl-dot hl-dot-gray"></span>Sin evidencia suficiente</span>
+        <span class="hl-item"><span class="hl-line"></span>Tasa base global</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB: PATRONES POR EVENTO ========== -->
+  <div class="tab-panel" id="tab-patterns">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title" id="patterns-title">Mapa de patrones</div>
+        <div class="panel-hint" id="patterns-hint">Clic en una celda o busca un evento para ver el detalle</div>
+      </div>
+
+      <div id="pattern-controls">
+        <div id="pattern-view-selector">
+          <button class="view-btn active" data-dim="registration" type="button">Matrícula</button>
+          <button class="view-btn" data-dim="origin" type="button">Origen</button>
+          <button class="view-btn" data-dim="destination" type="button">Destino</button>
+          <button class="view-btn" data-dim="version" type="button">Versión</button>
+          <button class="view-btn" data-dim="dataframe" type="button">Dataframe</button>
+        </div>
+
+        <div id="pattern-event-search">
+          <input type="text" id="pattern-event-input" list="pattern-event-list" placeholder="Buscar evento específico…" autocomplete="off" />
+          <datalist id="pattern-event-list"></datalist>
+          <button id="pattern-back-btn" type="button">Volver al mapa</button>
+        </div>
+      </div>
+
+      <div id="pattern-heatmap-view">
+        <div id="pattern-heatmap-scroll">
+          <canvas id="pattern-heatmap"></canvas>
+        </div>
+        <div id="pattern-heatmap-legend">
+          <span class="hl-item"><span class="hl-dot hl-dot-red"></span>Sobre la tasa base del evento</span>
+          <span class="hl-item"><span class="hl-dot hl-dot-blue"></span>Bajo la tasa base del evento</span>
+          <span class="hl-item"><span class="hl-dot hl-dot-gray"></span>Sin evidencia suficiente</span>
+        </div>
+      </div>
+
+      <div id="pattern-wilson-view">
+        <div id="pattern-wilson-scroll">
+          <canvas id="pattern-wilson-chart"></canvas>
+        </div>
+        <div id="pattern-wilson-legend">
+          <span class="hl-item"><span class="hl-dot hl-dot-red"></span>Sobre la tasa base del evento</span>
+          <span class="hl-item"><span class="hl-dot hl-dot-blue"></span>Bajo la tasa base del evento</span>
+          <span class="hl-item"><span class="hl-dot hl-dot-gray"></span>Sin evidencia suficiente</span>
+          <span class="hl-item"><span class="hl-line"></span>Tasa base del evento</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB: VALIDADORES ========== -->
+  <div class="tab-panel" id="tab-validators">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title" id="val-title">Distribución por validador</div>
+        <div class="panel-hint" id="val-hint">Selecciona un evento para ver la matriz</div>
+      </div>
+
+      <div id="val-controls">
+        <div id="val-dim-selector">
+          <button class="view-btn active" data-valdim="registration" type="button">Matrícula</button>
+          <button class="view-btn" data-valdim="origin" type="button">Origen</button>
+          <button class="view-btn" data-valdim="destination" type="button">Destino</button>
+          <button class="view-btn" data-valdim="version" type="button">Versión</button>
+          <button class="view-btn" data-valdim="dataframe" type="button">Dataframe</button>
+        </div>
+
+        <div id="val-event-search">
+          <input type="text" id="val-event-input" list="val-event-list" placeholder="Buscar evento…" autocomplete="off" />
+          <datalist id="val-event-list"></datalist>
+        </div>
+      </div>
+
+      <div id="val-heatmap-scroll">
+        <canvas id="val-heatmap"></canvas>
+      </div>
+      <div id="val-legend">
+        <span class="hl-item"><span class="hl-dot hl-dot-green"></span>100% válidos</span>
+        <span class="hl-item"><span class="hl-dot hl-dot-red"></span>100% inválidos</span>
+        <span class="hl-item"><span class="hl-dot hl-dot-gray"></span>Sin datos</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB: ASISTENTE DE VALIDACIÓN ==========
+       Sub-aplicación de 3 vistas con show/hide. Se inicializa de forma
+       diferida la primera vez que se abre la pestaña (el ajuste del
+       modelo es costoso y no debe retrasar el resto del reporte). -->
+  <div class="tab-panel" id="tab-assistant">
+    <div id="fdm-app">
+
+      <div id="fdm-bar">
+        <div id="fdm-sub">Abriendo el asistente…</div>
+        <span id="fdm-session-counter" class="fdm-pill"></span>
+      </div>
+
+      <div id="fdm-alert" class="fdm-alert fdm-hidden"></div>
+
+      <!-- ===== P1 · BÚSQUEDA ===== -->
+      <div id="view-search" class="fdm-view fdm-view-active">
+
+        <div id="fdm-kpis">
+          <div class="fdm-metric">
+            <div class="fdm-metric-label">Detecciones totales</div>
+            <div class="fdm-metric-value" id="kpi-detecciones">—</div>
+            <div class="fdm-metric-foot" id="kpi-detecciones-foot">—</div>
+          </div>
+          <div class="fdm-metric">
+            <div class="fdm-metric-label">Vuelos con detecciones</div>
+            <div class="fdm-metric-value" id="kpi-vuelos">—</div>
+            <div class="fdm-metric-foot" id="kpi-vuelos-foot">—</div>
+          </div>
+          <div class="fdm-metric fdm-metric-highlight">
+            <div class="fdm-metric-label">Tasa histórica de invalidación</div>
+            <div class="fdm-metric-value fdm-accent" id="kpi-tasa">—</div>
+            <div class="fdm-metric-foot" id="kpi-tasa-foot">—</div>
+          </div>
+          <div class="fdm-metric">
+            <div class="fdm-metric-label">Pendientes de validar</div>
+            <div class="fdm-metric-value fdm-warn" id="kpi-pendientes">—</div>
+            <div class="fdm-metric-foot" id="kpi-pendientes-foot">—</div>
+          </div>
+        </div>
+
+        <div class="fdm-panel" id="fdm-search-panel">
+          <div class="fdm-panel-header">
+            <div class="fdm-panel-title">Buscar vuelo</div>
+            <div class="fdm-panel-hint">Por identificador de vuelo, matrícula o aeropuerto</div>
+          </div>
+
+          <div id="fdm-search-box">
+            <input type="text" id="fdm-search-input" autocomplete="off" spellcheck="false"
+                   placeholder="Escribe un id de vuelo, matrícula o ICAO…"
+                   aria-label="Buscar vuelo por identificador, matrícula o aeropuerto" />
+            <div id="fdm-suggestions" class="fdm-hidden"></div>
+          </div>
+
+          <div id="fdm-search-state" class="fdm-state fdm-hidden"></div>
+
+          <div id="fdm-examples">
+            <div class="fdm-examples-label">Vuelos con detecciones pendientes</div>
+            <div id="fdm-example-chips"></div>
+          </div>
+        </div>
+
+        <div class="fdm-panel" id="fdm-model-panel">
+          <div class="fdm-panel-header">
+            <div class="fdm-panel-title">Estado del modelo</div>
+            <div class="fdm-panel-hint">Se ajusta una sola vez sobre el histórico etiquetado</div>
+          </div>
+          <div id="fdm-model-summary" class="fdm-kv-grid"></div>
+        </div>
+      </div>
+
+      <!-- ===== P2 · LISTA DE DETECCIONES ===== -->
+      <div id="view-list" class="fdm-view">
+        <div class="fdm-crumbs">
+          <button type="button" class="fdm-link-btn" id="btn-back-search">← Volver a la búsqueda</button>
+        </div>
+
+        <div class="fdm-panel">
+          <div id="fdm-flight-header"></div>
+
+          <div id="fdm-list-toolbar">
+            <label class="fdm-check">
+              <input type="checkbox" id="chk-ver-validadas" />
+              <span>Ver también las ya validadas</span>
+            </label>
+            <div id="fdm-list-count" class="fdm-muted"></div>
+          </div>
+
+          <div id="fdm-list-scroll">
+            <table id="fdm-list-table">
+              <thead>
+                <tr>
+                  <th>Estado</th>
+                  <th>Tipo de evento</th>
+                  <th>Fecha y hora</th>
+                  <th>Fase</th>
+                  <th title="Probabilidad de invalidación estimada en lote. Es un anticipo; la ficha muestra el cálculo completo con su incertidumbre.">Pre-indicador</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="fdm-list-body"></tbody>
+            </table>
+          </div>
+
+          <div id="fdm-list-empty" class="fdm-state fdm-hidden"></div>
+          <div id="fdm-pagination"></div>
+        </div>
+      </div>
+
+      <!-- ===== P3 · FICHA DE ANÁLISIS ===== -->
+      <div id="view-card" class="fdm-view">
+        <div class="fdm-crumbs">
+          <button type="button" class="fdm-link-btn" id="btn-back-list">← Volver a las detecciones del vuelo</button>
+          <button type="button" class="fdm-link-btn fdm-hidden" id="btn-back-origin">← Volver a la detección anterior</button>
+        </div>
+
+        <!-- A · Encabezado -->
+        <div class="fdm-panel" id="block-a"></div>
+
+        <div id="fdm-card-grid">
+
+          <div id="fdm-col-left">
+
+            <!-- B · Sugerencia -->
+            <div class="fdm-panel" id="block-b">
+              <div id="b-head"></div>
+              <div id="b-bar-wrap"><canvas id="canvas-prob"></canvas></div>
+              <div id="b-foot"></div>
+            </div>
+
+            <!-- C · Medidor de evidencia -->
+            <div class="fdm-panel" id="block-c">
+              <div class="fdm-panel-header">
+                <div class="fdm-panel-title">Evidencia disponible</div>
+                <div class="fdm-panel-hint">n efectivo contra el n mínimo óptimo</div>
+              </div>
+              <div id="c-meter-wrap"><canvas id="canvas-evidence"></canvas></div>
+              <div id="c-micro" class="fdm-micro-grid"></div>
+            </div>
+
+            <!-- D · Waterfall -->
+            <div class="fdm-panel" id="block-d">
+              <div class="fdm-panel-header fdm-collapsible" id="d-toggle">
+                <div class="fdm-panel-title">Construcción de la estimación</div>
+                <div class="fdm-panel-hint" id="d-toggle-hint">mostrar el detalle del cálculo</div>
+              </div>
+              <div id="d-body" class="fdm-hidden">
+                <div id="d-scroll"><canvas id="canvas-waterfall"></canvas></div>
+                <div id="d-legend" class="fdm-legend">
+                  <span class="fdm-lg"><span class="fdm-dot fdm-dot-red"></span>Empuja a invalidar</span>
+                  <span class="fdm-lg"><span class="fdm-dot fdm-dot-green"></span>Empuja a validar</span>
+                  <span class="fdm-lg"><span class="fdm-dot fdm-dot-gray"></span>Sin efecto / sin soporte</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="fdm-col-right">
+
+            <!-- F · Motivo inferido -->
+            <div class="fdm-panel" id="block-f"></div>
+
+            <!-- G · Casos similares -->
+            <div class="fdm-panel" id="block-g"></div>
+
+            <!-- H · Diagnóstico -->
+            <div class="fdm-panel" id="block-h">
+              <div class="fdm-panel-header fdm-collapsible" id="h-toggle">
+                <div class="fdm-panel-title">Diagnóstico del modelo</div>
+                <div class="fdm-panel-hint" id="h-toggle-hint">mostrar</div>
+              </div>
+              <div id="h-body" class="fdm-hidden"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- E · Tabla completa de características -->
+        <div class="fdm-panel" id="block-e">
+          <div class="fdm-panel-header fdm-collapsible" id="e-toggle">
+            <div class="fdm-panel-title">Características agregadas</div>
+            <div class="fdm-panel-hint" id="e-toggle-hint">mostrar la tabla completa</div>
+          </div>
+          <div id="e-body" class="fdm-hidden">
+            <div class="fdm-muted" style="margin-bottom:8px">Las 8 filas siempre presentes. Clic en una cabecera para ordenar.</div>
+            <div id="e-scroll"></div>
+          </div>
+        </div>
+
+        <!-- I · Registro de decisión -->
+        <div class="fdm-panel" id="block-i"></div>
+
+        <div id="fdm-disclaimer"></div>
+      </div>
+
+      <div id="fdm-diag"></div>
+    </div>
+  </div>
+
+  <!-- ========== TAB: ASIGNACIÓN ==========
+       Reparto determinista de los vuelos pendientes entre los analistas.
+       La plantilla y las restricciones por tipo de evento se configuran
+       en el bloque ASIGNACION de app.js. -->
+  <div class="tab-panel" id="tab-assign">
+    <div id="asg-app">
+
+      <div id="asg-alert" class="asg-alert asg-hidden"></div>
+
+      <div id="asg-kpis">
+        <div class="metric">
+          <div class="metric-label">Vuelos pendientes</div>
+          <div class="metric-value" id="asg-kpi-vuelos">–</div>
+          <div class="metric-foot" id="asg-kpi-vuelos-foot">–</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Eventos por validar</div>
+          <div class="metric-value metric-warning" id="asg-kpi-eventos">–</div>
+          <div class="metric-foot">carga total a repartir</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Analistas activos</div>
+          <div class="metric-value" id="asg-kpi-analistas">–</div>
+          <div class="metric-foot" id="asg-kpi-analistas-foot">–</div>
+        </div>
+        <div class="metric metric-highlight">
+          <div class="metric-label">Carga media</div>
+          <div class="metric-value metric-accent" id="asg-kpi-media">–</div>
+          <div class="metric-foot" id="asg-kpi-media-foot">–</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Reparto por analista</div>
+          <div class="panel-hint">Clic en una fila para ver sus vuelos</div>
+        </div>
+        <div id="asg-toolbar">
+          <span id="asg-balance" class="asg-muted"></span>
+          <button class="fdm-btn" id="asg-copy" type="button">Copiar reparto como texto</button>
+        </div>
+        <div id="asg-scroll">
+          <table id="asg-table">
+            <thead>
+              <tr>
+                <th>Analista</th>
+                <th class="asg-num">Vuelos</th>
+                <th class="asg-num" title="Número de eventos de severidad alta pendientes en los vuelos asignados. Es la carga real.">Eventos</th>
+                <th>Reparto de la carga</th>
+                <th class="asg-num" title="Validaciones cerradas por esta persona en los últimos 30 días. Se aproxima con la fecha del evento, no con la fecha real de validación.">Validados 30 d</th>
+                <th>Restricciones</th>
+              </tr>
+            </thead>
+            <tbody id="asg-tbody"></tbody>
+          </table>
+        </div>
+        <div id="asg-nota" class="asg-nota"></div>
+      </div>
+
+      <div class="panel asg-hidden" id="asg-conflictos-panel">
+        <div class="panel-header">
+          <div class="panel-title">Vuelos sin analista habilitado</div>
+          <div class="panel-hint">Ningún analista puede gestionar todos sus eventos</div>
+        </div>
+        <div id="asg-conflictos"></div>
+      </div>
+
+      <div class="panel asg-hidden" id="asg-detalle-panel">
+        <div class="panel-header">
+          <div class="panel-title" id="asg-detalle-titulo">Vuelos asignados</div>
+          <button class="fdm-btn" id="asg-detalle-cerrar" type="button">Cerrar</button>
+        </div>
+        <div id="asg-detalle-scroll">
+          <table id="asg-detalle-table">
+            <thead>
+              <tr>
+                <th>Vuelo</th>
+                <th>Matrícula</th>
+                <th>Ruta</th>
+                <th>Fecha</th>
+                <th class="asg-num">Eventos</th>
+                <th>Tipos de evento</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="asg-detalle-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="asg-diag"></div>
+    </div>
+  </div>
+</div>
+
+<div id="tooltip"></div>
+<div id="fdm-tooltip"></div>
+<div id="diag"></div>

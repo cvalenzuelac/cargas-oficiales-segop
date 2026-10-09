@@ -1,0 +1,25 @@
+# Configuración local (contiene rutas reales)
+config.json
+
+# Almacenamiento del servidor local (reemplaza a KV)
+.local-data/
+
+# Estado del script de envío (hashes por fuente) y logs
+.state/
+logs/
+*.log
+
+# Datos reales: nunca al repo. Solo los CSV ficticios de fixtures/
+*.csv
+!fixtures/*.csv
+payload*.json
+
+# Secretos (.env local, .env.production, etc.)
+.env
+.env.*
+!.env.example
+.dev.vars
+
+# Python
+__pycache__/
+*.pyc

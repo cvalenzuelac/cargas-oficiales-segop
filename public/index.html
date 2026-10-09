@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Carga del equipo</title>
+  <link rel="stylesheet" href="css/base.css">
+  <script type="module" src="js/index.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="app-header-inner">
+      <div>
+        <h1>Carga del equipo</h1>
+        <p id="status" class="muted small" role="status">Cargando…</p>
+      </div>
+      <nav class="tabs" role="tablist" aria-label="Vistas">
+        <button type="button" role="tab" id="tab-team" aria-controls="view-team" data-view="carga">Equipo</button>
+        <button type="button" role="tab" id="tab-assignment" aria-controls="view-assignment" data-view="asignacion">Vuelos de Sara</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section id="view-team" role="tabpanel" aria-labelledby="tab-team" hidden>
+      <div id="team-kpis" class="kpis"></div>
+
+      <section class="card" aria-labelledby="h-load">
+        <div class="card-head">
+          <h2 id="h-load">Carga por persona</h2>
+          <details class="info">
+            <summary aria-label="Cómo se calcula">ⓘ</summary>
+            <ul id="load-info"></ul>
+          </details>
+        </div>
+        <div id="team-chart"></div>
+      </section>
+
+      <details class="card table-card">
+        <summary>Ver tabla</summary>
+        <div id="team-table"></div>
+      </details>
+    </section>
+
+    <section id="view-assignment" role="tabpanel" aria-labelledby="tab-assignment" hidden>
+      <div id="assignment-kpis" class="kpis"></div>
+      <section class="card" aria-labelledby="h-validators">
+        <div class="card-head">
+          <h2 id="h-validators">Validadores</h2>
+          <details class="info">
+            <summary aria-label="Cómo se reparte">ⓘ</summary>
+            <ul id="assignment-info"></ul>
+          </details>
+        </div>
+        <div id="assignment-table"></div>
+      </section>
+      <details id="assignment-conflicts" class="card table-card" hidden>
+        <summary></summary>
+        <div class="panel-body"></div>
+      </details>
+      <details id="assignment-backlog" class="card table-card">
+        <summary></summary>
+        <div class="panel-body"></div>
+      </details>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <details id="data-status">
+      <summary>Estado de los datos</summary>
+      <div id="data-sources"></div>
+      <div id="data-warnings"></div>
+    </details>
+  </footer>
+
+  <dialog id="person" aria-labelledby="person-name">
+    <div class="dialog-head">
+      <div>
+        <h2 id="person-name"></h2>
+        <p id="person-meta" class="muted small"></p>
+      </div>
+      <button type="button" class="btn" id="person-close">Cerrar</button>
+    </div>
+    <div id="person-kpis" class="kpis compact"></div>
+    <section aria-labelledby="person-sara-h">
+      <h3 id="person-sara-h">Vuelos de Sara</h3>
+      <div id="person-sara"></div>
+    </section>
+    <section aria-labelledby="person-planner-h">
+      <h3 id="person-planner-h">Tareas abiertas de Planner</h3>
+      <div id="person-planner"></div>
+    </section>
+  </dialog>
+</body>
+</html>
